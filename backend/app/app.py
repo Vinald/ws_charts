@@ -1,13 +1,22 @@
 import asyncio
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from fastapi import FastAPI, Query
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.websockets import WebSocket
 from pathlib import Path
+from .database import init_db
 from .manager import WebSocketManager
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await init_db()
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 manager = WebSocketManager()
 
 frontend_path = Path(__file__).parent.parent.parent / "frontend"
