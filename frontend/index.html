@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Chat</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="chat-wrapper">
+        <div class="chat-header">
+            <div class="header-avatar">DS</div>
+            <div class="header-info">
+                <div class="header-name">Data Stream</div>
+                <div class="header-status" id="connection-status">Connecting...</div>
+            </div>
+        </div>
+
+        <div class="messages-area">
+            <ul id="messages-list" class="messages-list"></ul>
+        </div>
+
+        <div class="input-area">
+            <form id="message-form" class="message-input-form">
+                <input
+                    type="text"
+                    class="message-input"
+                    id="message"
+                    name="message"
+                    placeholder="Type a value..."
+                    autocomplete="off"
+                />
+                <button class="send-btn" type="submit" aria-label="Send">
+                    <svg viewBox="0 0 24 24" width="22" height="22">
+                        <path fill="currentColor" d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"></path>
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
