@@ -6,13 +6,15 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.websockets import WebSocket
 from pathlib import Path
-from .database import init_db
+from alembic.config import Config
+from alembic import command
 from .manager import WebSocketManager
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await init_db()
+    alembic_cfg = Config(Path(__file__).parent.parent / "alembic.ini")
+    command.upgrade(alembic_cfg, "head")
     yield
 
 

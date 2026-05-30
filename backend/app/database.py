@@ -5,22 +5,6 @@ DB_PATH = Path(__file__).parent.parent / "chat.db"
 MAX_HISTORY = 50
 
 
-async def init_db():
-    async with aiosqlite.connect(DB_PATH) as db:
-        await db.execute("""
-            CREATE TABLE IF NOT EXISTS messages (
-                id        INTEGER PRIMARY KEY AUTOINCREMENT,
-                room_id   TEXT    NOT NULL,
-                msg_id    TEXT,
-                username  TEXT,
-                message   TEXT    NOT NULL,
-                timestamp TEXT    NOT NULL
-            )
-        """)
-        await db.execute("CREATE INDEX IF NOT EXISTS idx_room ON messages (room_id, id)")
-        await db.commit()
-
-
 async def save_message(room_id: str, data: dict):
     async with aiosqlite.connect(DB_PATH) as db:
         await db.execute(
