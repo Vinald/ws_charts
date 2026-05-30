@@ -1,0 +1,9 @@
+.venv
+.git
+.idea
+.vscode
+.claude
+__pycache__
+*.pyc
+*.pyo
+backend/chat.db

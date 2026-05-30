@@ -12,9 +12,9 @@ from app.db.models import metadata  # noqa: E402
 
 config = context.config
 
-# Resolve absolute path to chat.db so alembic works from any CWD
-db_path = Path(__file__).parent.parent / "chat.db"
-config.set_main_option("sqlalchemy.url", f"sqlite:///{db_path.resolve()}")
+from app.core.config import DATA_DIR  # noqa: E402
+
+config.set_main_option("sqlalchemy.url", f"sqlite:///{(DATA_DIR / 'chat.db').resolve()}")
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)

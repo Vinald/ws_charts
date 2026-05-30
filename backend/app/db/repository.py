@@ -1,8 +1,8 @@
 import aiosqlite
 
-from app.core.config import BASE_DIR, MAX_HISTORY
+from app.core.config import DATA_DIR, MAX_HISTORY
 
-DB_PATH = BASE_DIR / "chat.db"
+DB_PATH = DATA_DIR / "chat.db"
 
 
 async def save_message(room_id: str, data: dict):
