@@ -1,34 +1,56 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>WebSocket Chart</title>
-</head>
-<body>
-    <h1>WebSocket Chart</h1>
-    <div id="chart"></div>
+  </head>
+  <body>
+    <div>
+      <h1>WebSocket Chart</h1>
+      <form id="message-form">
+        <label for="message">Message:</label>
+        <input
+          type="text"
+          id="message"
+          name="message"
+          placeholder="Type your message here..."
+        />
+        <button type="submit">Send</button>
+      </form>
+      <div id="chart-container">
+        <canvas id="chart-canvas"></canvas>
+      </div>
+    </div>
+
     <script>
-        const socket = new WebSocket("ws://localhost:8000/ws");
+      const ws = new WebSocket("ws://localhost:8000/ws");
 
-        socket.onopen = () => {
-            console.log("WebSocket connection established");
-        };
+      ws.onopen = () => {
+        console.log("WebSocket connection established");
+      };
 
-        socket.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            // Update chart with new data
-        };
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        console.log("WebSocket message received:", data);
+      };
 
-        socket.onclose = () => {
-            console.log("WebSocket connection closed");
-        };
+      ws.onclose = () => {
+        console.log("WebSocket connection closed");
+      };
 
-        socket.onerror = (error) => {
-            console.error("WebSocket error:", error);
-        };
+      ws.onerror = (error) => {
+        console.error("WebSocket error:", error);
+      };
 
+      const form = document.getElementById("message-form");
+      form.onsubmit = (event) => {
+        event.preventDefault();
+        const input = document.getElementById("message");
+        const message = input.value;
+        ws.send(JSON.stringify({ message }));
+        input.value = "";
+      };
     </script>
-
-</body>
+  </body>
 </html>
