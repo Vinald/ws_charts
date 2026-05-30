@@ -72,6 +72,15 @@ body {
     color: #e74c3c;
 }
 
+.header-status.reconnecting {
+    color: #f39c12;
+}
+
+.header-status.typing {
+    color: #25d366;
+    font-style: italic;
+}
+
 /* Messages Area */
 .messages-area {
     flex: 1;
@@ -91,6 +100,23 @@ body {
 .message-item {
     display: flex;
     animation: fadeIn 0.2s ease-in-out;
+}
+
+.message-item.history {
+    animation: none;
+    opacity: 0.85;
+}
+
+.messages-divider {
+    text-align: center;
+    font-size: 0.75rem;
+    color: #8696a0;
+    background: rgba(17, 27, 33, 0.6);
+    border-radius: 8px;
+    padding: 4px 12px;
+    margin: 8px auto;
+    width: fit-content;
+    list-style: none;
 }
 
 .message-item.sent {
@@ -131,11 +157,102 @@ body {
     color: #e9edef;
 }
 
+.message-sender {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #25d366;
+    margin-bottom: 3px;
+}
+
+.message-meta {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+    margin-top: 3px;
+}
+
 .message-timestamp {
     font-size: 0.68rem;
     color: #8696a0;
-    margin-top: 3px;
-    text-align: right;
+}
+
+.message-tick {
+    font-size: 0.72rem;
+    color: #8696a0;
+}
+
+.message-tick.delivered {
+    color: #53bdeb;
+}
+
+/* Username overlay */
+.username-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.88);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.username-box {
+    background: #202c33;
+    border-radius: 12px;
+    padding: 32px 28px;
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    text-align: center;
+}
+
+.username-box h2 {
+    color: #e9edef;
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.username-box p {
+    color: #8696a0;
+    font-size: 0.88rem;
+}
+
+.username-box form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.username-box input {
+    background: #2a3942;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: #e9edef;
+    font-size: 0.95rem;
+    outline: none;
+    caret-color: #25d366;
+}
+
+.username-box input::placeholder {
+    color: #8696a0;
+}
+
+.username-box button {
+    background: #25d366;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.username-box button:hover {
+    background: #1da851;
 }
 
 /* Input Area */

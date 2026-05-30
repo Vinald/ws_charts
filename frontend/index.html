@@ -7,6 +7,24 @@
     <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
+    <!-- Username overlay shown on first visit -->
+    <div class="username-overlay" id="username-overlay">
+        <div class="username-box">
+            <h2>WebSocket Chat</h2>
+            <p>Enter your name to start chatting</p>
+            <form id="username-form">
+                <input
+                    type="text"
+                    id="username-input"
+                    placeholder="Your name"
+                    maxlength="20"
+                    autocomplete="off"
+                />
+                <button type="submit">Join</button>
+            </form>
+        </div>
+    </div>
+
     <div class="chat-wrapper">
         <div class="chat-header">
             <div class="header-avatar">DS</div>
