@@ -27,7 +27,7 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             message = await websocket.receive_json()
             print(f"WebSocket received: {message}")
-            await manager.send_message(message)
+            await manager.send_message(message, sender=websocket)
     except Exception as e:
         print(f"WebSocket error: {e}")
     finally:

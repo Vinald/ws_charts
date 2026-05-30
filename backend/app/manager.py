@@ -27,6 +27,7 @@ class WebSocketManager:
             f"Current connections: {[conn.client.host + ':' + str(conn.client.port) for conn in self.connections]}"
         )
 
-    async def send_message(self, rec_message: dict):
+    async def send_message(self, rec_message: dict, sender: WebSocket = None):
         for connection in self.connections:
-            await connection.send_json(rec_message)
+            if connection is not sender:
+                await connection.send_json(rec_message)
