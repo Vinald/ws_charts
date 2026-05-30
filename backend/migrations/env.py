@@ -8,7 +8,7 @@ from sqlalchemy import engine_from_config, pool
 # Ensure backend/ is importable
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from app.models import metadata  # noqa: E402
+from app.db.models import metadata  # noqa: E402
 
 config = context.config
 

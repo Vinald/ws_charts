@@ -16,13 +16,19 @@ ws_charts/
     ├── alembic.ini           # Alembic configuration
     ├── chat.db               # SQLite database (auto-created on first run)
     ├── migrations/
-    │   ├── env.py            # Alembic env — wires in metadata, resolves DB path
+    │   ├── env.py            # Wires SQLAlchemy metadata into Alembic; resolves DB path
     │   └── versions/         # Migration files
     └── app/
-        ├── app.py            # FastAPI app, WebSocket endpoint, lifespan
-        ├── manager.py        # WebSocket connection manager
-        ├── models.py         # SQLAlchemy table definitions (schema source of truth)
-        └── database.py       # aiosqlite async query helpers
+        ├── main.py           # FastAPI app, lifespan (runs migrations), mounts static
+        ├── api/
+        │   └── chat.py       # GET / and WebSocket /ws routes
+        ├── core/
+        │   └── config.py     # Constants (MAX_HISTORY, PING_INTERVAL) and path roots
+        ├── db/
+        │   ├── models.py     # SQLAlchemy table definitions (schema source of truth)
+        │   └── repository.py # save_message / load_history (aiosqlite)
+        └── ws/
+            └── manager.py    # WebSocketManager + module-level singleton
 ```
 
 ## Features
@@ -67,7 +73,7 @@ pip install -r requirements.txt
 
 ```bash
 cd backend
-uvicorn app.app:app --reload
+uvicorn app.main:app --reload
 ```
 
 The server starts on `http://localhost:8000`. Alembic applies any pending migrations automatically on startup, creating `backend/chat.db` if it doesn't exist.
@@ -164,7 +170,7 @@ Index: `idx_room (room_id, id)` — supports history queries filtered by room an
 
 **`chat.db` permission error** — Ensure the process has write access to the `backend/` directory.
 
-**"offline" status persists** — Restart the server (`Ctrl+C`, `uvicorn app.app:app --reload`) and hard-refresh the browser.
+**"offline" status persists** — Restart the server (`Ctrl+C`, `uvicorn app.main:app --reload`) and hard-refresh the browser.
 
 ## License
 
