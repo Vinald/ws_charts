@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime, timezone
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.websockets import WebSocket
@@ -21,8 +21,8 @@ async def root():
 
 
 @app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    await manager.connect(websocket)
+async def websocket_endpoint(websocket: WebSocket, room: str = Query("default")):
+    await manager.connect(websocket, room_id=room)
     beat = asyncio.create_task(manager.heartbeat(websocket))
     try:
         while True:
@@ -31,7 +31,10 @@ async def websocket_endpoint(websocket: WebSocket):
 
             if msg_type == "message":
                 data["timestamp"] = datetime.now(timezone.utc).isoformat()
-                await manager.send_to(websocket, {"type": "ack", "id": data.get("id")})
+                msg_id = data.get("id")
+                print(f"Message received with id: {msg_id}")
+                await manager.send_to(websocket, {"type": "ack", "id": msg_id})
+                print(f"ACK sent for id: {msg_id}")
                 await manager.broadcast(data, sender=websocket)
 
             elif msg_type == "typing":

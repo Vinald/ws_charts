@@ -10,17 +10,27 @@
     <!-- Username overlay shown on first visit -->
     <div class="username-overlay" id="username-overlay">
         <div class="username-box">
-            <h2>WebSocket Chat</h2>
-            <p>Enter your name to start chatting</p>
+            <div class="username-header">
+                <svg class="username-icon" viewBox="0 0 24 24" width="48" height="48">
+                    <circle cx="12" cy="8" r="4" fill="currentColor"/>
+                    <path d="M 12 14 C 7 14 3 16 3 20 L 3 22 L 21 22 L 21 20 C 21 16 17 14 12 14 Z" fill="currentColor"/>
+                </svg>
+            </div>
+            <h2>Welcome to Chat</h2>
+            <p>Enter your username to join</p>
             <form id="username-form">
-                <input
-                    type="text"
-                    id="username-input"
-                    placeholder="Your name"
-                    maxlength="20"
-                    autocomplete="off"
-                />
-                <button type="submit">Join</button>
+                <div class="username-input-group">
+                    <input
+                        type="text"
+                        id="username-input"
+                        placeholder="Your name..."
+                        maxlength="20"
+                        autocomplete="off"
+                        required
+                    />
+                    <button type="submit" class="username-join-btn">Join</button>
+                </div>
+                <p class="username-hint">Choose a name (2-20 characters)</p>
             </form>
         </div>
     </div>

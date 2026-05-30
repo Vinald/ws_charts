@@ -1,5 +1,6 @@
 class WebSocketChatApp {
-    constructor() {
+    constructor(roomId = "default") {
+        this.roomId = roomId;
         this.ws = null;
         this.reconnectDelay = 1000;
         this.maxReconnectDelay = 30000;
@@ -19,16 +20,30 @@ class WebSocketChatApp {
     showUsernamePrompt() {
         const overlay = document.getElementById("username-overlay");
         overlay.style.display = "flex";
+        const input = document.getElementById("username-input");
+        input.focus();
 
         document.getElementById("username-form").onsubmit = (e) => {
             e.preventDefault();
-            const name = document.getElementById("username-input").value.trim();
-            if (!name) return;
+            const name = input.value.trim();
+            
+            if (!name || name.length < 2) {
+                input.classList.add("shake");
+                setTimeout(() => input.classList.remove("shake"), 500);
+                return;
+            }
+            
             this.username = name;
             localStorage.setItem("chat_username", name);
             overlay.style.display = "none";
             this.init();
         };
+        
+        input.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
+                document.getElementById("username-form").dispatchEvent(new Event("submit"));
+            }
+        });
     }
 
     init() {
@@ -39,7 +54,11 @@ class WebSocketChatApp {
     connect() {
         this.historyDividerShown = false;
         try {
-            this.ws = new WebSocket("ws://localhost:8000/ws");
+            const wsUrl = new URL("ws://localhost:8000/ws", window.location.href);
+            wsUrl.protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+            wsUrl.searchParams.set("room", this.roomId);
+            
+            this.ws = new WebSocket(wsUrl.toString());
 
             this.ws.onopen = () => {
                 this.reconnectDelay = 1000;
@@ -85,9 +104,11 @@ class WebSocketChatApp {
 
             if (this.ws && this.ws.readyState === WebSocket.OPEN) {
                 const id = crypto.randomUUID();
-                const li = this.addMessage(message, "sent", null, id);
+                const li = this.addMessage(message, "sent", this.username, id);
                 this.pendingMessages.set(id, li);
-                this.ws.send(JSON.stringify({ type: "message", id, message, username: this.username }));
+                const payload = { type: "message", id, message, username: this.username };
+                console.log("Sending message:", payload);
+                this.ws.send(JSON.stringify(payload));
             } else {
                 alert("Not connected");
             }
@@ -106,29 +127,60 @@ class WebSocketChatApp {
     }
 
     handleMessage(data) {
+        if (!data) {
+            console.error("Received null/undefined data");
+            return;
+        }
+        
+        if (!data.type) {
+            console.warn("Received data without type field:", data);
+            return;
+        }
+        
+        console.log("Received data:", data);
+        
         if (data.type === "ack") {
+            console.log("ACK received for id:", data.id);
+            console.log("Pending messages:", Array.from(this.pendingMessages.keys()));
             const li = this.pendingMessages.get(data.id);
             if (li) {
+                console.log("Found pending message, updating tick");
                 const tick = li.querySelector(".message-tick");
+                console.log("Tick element:", tick);
                 if (tick) {
                     tick.textContent = "✓✓";
                     tick.classList.add("delivered");
+                    console.log("Tick updated to double tick");
                 }
                 this.pendingMessages.delete(data.id);
+            } else {
+                console.warn("ACK received but no pending message found for id:", data.id);
             }
 
         } else if (data.type === "ping") {
+            console.log("Ping received, sending pong");
             this.ws.send(JSON.stringify({ type: "pong" }));
 
         } else if (data.type === "typing") {
+            console.log("Typing indicator from:", data.username);
             this.showTypingIndicator(data.username);
 
         } else if (data.type === "message") {
+            // Display messages from other clients
+            // Safety check: only display if message has actual content
+            if (!data.message) {
+                console.warn("Received message without content:", data);
+                return;
+            }
+            
+            console.log("Displaying message from:", data.username);
             if (data.history && !this.historyDividerShown) {
                 this.addDivider("Earlier messages");
                 this.historyDividerShown = true;
             }
             this.addMessage(data.message, "received", data.username, null, data.timestamp, data.history);
+        } else {
+            console.log("Unknown message type, ignoring:", data);
         }
     }
 
@@ -158,14 +210,18 @@ class WebSocketChatApp {
         const messagesList = document.getElementById("messages-list");
         const li = document.createElement("li");
         li.className = `message-item ${direction}${isHistory ? " history" : ""}`;
+        if (id) {
+            li.dataset.messageId = id;
+        }
 
         const bubble = document.createElement("div");
         bubble.className = "message-bubble";
 
-        if (username) {
+        // Show username for both sent and received messages
+        if (username || (direction === "sent" && this.username)) {
             const sender = document.createElement("div");
             sender.className = "message-sender";
-            sender.textContent = username;
+            sender.textContent = username || this.username;
             bubble.appendChild(sender);
         }
 
@@ -189,6 +245,7 @@ class WebSocketChatApp {
             const tick = document.createElement("span");
             tick.className = "message-tick";
             tick.textContent = "✓";
+            tick.setAttribute("data-tick-id", id);
             meta.appendChild(tick);
         }
 
@@ -221,5 +278,8 @@ class WebSocketChatApp {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    new WebSocketChatApp();
+    // Get room ID from URL params or use default
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomId = urlParams.get("room") || "default";
+    new WebSocketChatApp(roomId);
 });

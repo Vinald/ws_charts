@@ -178,12 +178,41 @@ body {
 }
 
 .message-tick {
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     color: #8696a0;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    animation: tickFadeIn 0.3s ease-out;
 }
 
 .message-tick.delivered {
-    color: #53bdeb;
+    color: #31a24c;
+    font-weight: 700;
+    animation: tickDeliver 0.4s ease-out;
+}
+
+@keyframes tickFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes tickDeliver {
+    0% {
+        color: #8696a0;
+        transform: scale(1);
+    }
+    50% {
+        color: #25d366;
+        transform: scale(1.2);
+    }
+    100% {
+        color: #31a24c;
+        transform: scale(1);
+    }
 }
 
 /* Username overlay */
@@ -198,61 +227,137 @@ body {
 }
 
 .username-box {
-    background: #202c33;
-    border-radius: 12px;
-    padding: 32px 28px;
-    width: 300px;
+    background: linear-gradient(135deg, #1f282f 0%, #243542 100%);
+    border-radius: 20px;
+    padding: 40px 32px;
+    width: 100%;
+    max-width: 360px;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 20px;
     text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(37, 211, 102, 0.1);
+    animation: slideUp 0.4s ease-out;
+    border: 1px solid rgba(37, 211, 102, 0.2);
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.username-header {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 8px;
+}
+
+.username-icon {
+    color: #25d366;
+    opacity: 0.9;
 }
 
 .username-box h2 {
     color: #e9edef;
-    font-size: 1.2rem;
+    font-size: 1.4rem;
     font-weight: 700;
+    margin: 0;
+    letter-spacing: 0.5px;
 }
 
 .username-box p {
     color: #8696a0;
-    font-size: 0.88rem;
+    font-size: 0.9rem;
+    margin: 0;
 }
 
 .username-box form {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 14px;
+}
+
+.username-input-group {
+    display: flex;
+    gap: 8px;
 }
 
 .username-box input {
-    background: #2a3942;
-    border: none;
-    border-radius: 8px;
-    padding: 10px 14px;
-    color: #e9edef;
+    flex: 1;
+    background: #364a56;
+    border: 2px solid #364a56;
+    border-radius: 10px;
+    padding: 14px 16px;
+    color: #ffffff;
     font-size: 0.95rem;
+    font-weight: 500;
     outline: none;
     caret-color: #25d366;
+    transition: all 0.2s;
+}
+
+.username-box input:focus {
+    background: #3f5a6b;
+    border-color: #25d366;
+    box-shadow: 0 0 0 4px rgba(37, 211, 102, 0.15);
 }
 
 .username-box input::placeholder {
-    color: #8696a0;
+    color: #a0a8b0;
+    font-weight: 400;
 }
 
-.username-box button {
-    background: #25d366;
-    color: #fff;
+.username-box input.shake {
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+.username-join-btn {
+    background: linear-gradient(135deg, #25d366 0%, #1da851 100%);
+    color: #ffffff;
     border: none;
-    border-radius: 8px;
-    padding: 10px;
+    border-radius: 10px;
+    padding: 14px 24px;
     font-size: 0.95rem;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    letter-spacing: 0.5px;
 }
 
-.username-box button:hover {
-    background: #1da851;
+.username-join-btn:hover {
+    background: linear-gradient(135deg, #1da851 0%, #16854a 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(37, 211, 102, 0.4);
+}
+
+.username-join-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(37, 211, 102, 0.3);
+}
+
+.username-join-btn:active {
+    transform: translateY(0);
+}
+
+.username-hint {
+    color: #8a96a0;
+    font-size: 0.8rem;
+    margin: 0;
+    opacity: 0.9;
+    font-weight: 400;
 }
 
 /* Input Area */
