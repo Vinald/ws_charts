@@ -6,6 +6,9 @@ A real-time, multi-room WebSocket chat application with reliability, security, a
 
 ```
 ws_charts/
+├── Dockerfile
+├── docker-compose.yml
+├── .dockerignore
 ├── frontend/
 │   ├── index.html        # Main HTML
 │   ├── styles.css        # WhatsApp-style dark theme
@@ -14,7 +17,7 @@ ws_charts/
 └── backend/
     ├── requirements.txt
     ├── alembic.ini           # Alembic configuration
-    ├── chat.db               # SQLite database (auto-created on first run)
+    ├── chat.db               # SQLite database (auto-created, local dev only)
     ├── migrations/
     │   ├── env.py            # Wires SQLAlchemy metadata into Alembic; resolves DB path
     │   └── versions/         # Migration files
@@ -23,7 +26,7 @@ ws_charts/
         ├── api/
         │   └── chat.py       # GET / and WebSocket /ws routes
         ├── core/
-        │   └── config.py     # Constants (MAX_HISTORY, PING_INTERVAL) and path roots
+        │   └── config.py     # Constants, path roots, DATA_DIR env var
         ├── db/
         │   ├── models.py     # SQLAlchemy table definitions (schema source of truth)
         │   └── repository.py # save_message / load_history (aiosqlite)
@@ -50,14 +53,40 @@ ws_charts/
 ### Architecture
 
 - **Rooms/channels** — Connections and history are isolated by room ID. Join with `?room=<name>`.
-- **Persistent history** — Messages are stored in SQLite via `aiosqlite` and survive server restarts.
+- **Persistent history** — Messages are stored in SQLite and survive server restarts.
 - **Schema versioning** — Alembic manages all schema changes. `alembic upgrade head` runs automatically at startup.
+- **Docker support** — Single-command build and run via Docker Compose; database persisted in a named volume.
 
 ### Security
 
 - **XSS prevention** — `html.escape()` on the backend; `textContent` (never `innerHTML`) on the frontend.
 
-## Setup
+---
+
+## Running with Docker (recommended)
+
+```bash
+# Build and start
+docker compose up --build
+
+# Run in the background
+docker compose up -d --build
+
+# Stream logs
+docker compose logs -f
+
+# Stop
+docker compose down
+
+# Stop and delete the database volume
+docker compose down -v
+```
+
+The app is available at `http://localhost:8000`. The database is stored in a named Docker volume (`chat_data`) and persists across restarts and rebuilds.
+
+---
+
+## Running Locally
 
 ```bash
 # 1. Create and activate a virtual environment
@@ -67,18 +96,16 @@ source .venv/bin/activate   # Windows: .venv\Scripts\activate
 # 2. Install dependencies
 cd backend
 pip install -r requirements.txt
-```
 
-## Running
-
-```bash
-cd backend
+# 3. Start the server
 uvicorn app.main:app --reload
 ```
 
-The server starts on `http://localhost:8000`. Alembic applies any pending migrations automatically on startup, creating `backend/chat.db` if it doesn't exist.
+The server starts on `http://localhost:8000`. Alembic applies any pending migrations on startup and creates `backend/chat.db` if it doesn't exist.
 
 Open a second tab at `http://localhost:8000?room=other` to test rooms.
+
+---
 
 ## Database Migrations (Alembic)
 
@@ -97,24 +124,26 @@ alembic current
 # View full migration history
 alembic history
 
-# Add a new migration after editing models.py
+# Generate a new migration after editing db/models.py
 alembic revision --autogenerate -m "describe the change"
 ```
 
 ### Schema
 
-Defined in `backend/app/models.py` using SQLAlchemy Core. The `messages` table:
+Defined in `backend/app/db/models.py` using SQLAlchemy Core. The `messages` table:
 
-| Column      | Type    | Notes                        |
-|-------------|---------|------------------------------|
-| `id`        | INTEGER | Primary key, autoincrement   |
-| `room_id`   | TEXT    | Room the message belongs to  |
-| `msg_id`    | TEXT    | Client-generated UUID        |
-| `username`  | TEXT    | Sender's display name        |
-| `message`   | TEXT    | Sanitized message content    |
-| `timestamp` | TEXT    | ISO 8601 UTC timestamp       |
+| Column      | Type    | Notes                       |
+|-------------|---------|-----------------------------|
+| `id`        | INTEGER | Primary key, autoincrement  |
+| `room_id`   | TEXT    | Room the message belongs to |
+| `msg_id`    | TEXT    | Client-generated UUID       |
+| `username`  | TEXT    | Sender's display name       |
+| `message`   | TEXT    | Sanitized message content   |
+| `timestamp` | TEXT    | ISO 8601 UTC timestamp      |
 
 Index: `idx_room (room_id, id)` — supports history queries filtered by room and ordered by id.
+
+---
 
 ## WebSocket API
 
@@ -137,19 +166,29 @@ Index: `idx_room (room_id, id)` — supports history queries filtered by room an
 { "type": "ping" }
 ```
 
+---
+
 ## Configuration
 
-| Location | Constant | Default | Description |
-|----------|----------|---------|-------------|
-| `database.py` | `MAX_HISTORY` | `50` | Messages loaded on join |
-| `manager.py` | `PING_INTERVAL` | `300` | Heartbeat interval (seconds) |
-| `script.js` | `reconnectDelay` | `1000` | Initial reconnect delay (ms) |
-| `script.js` | `maxReconnectDelay` | `30000` | Max reconnect delay (ms) |
+| Location        | Name              | Default | Description                      |
+|-----------------|-------------------|---------|----------------------------------|
+| `core/config.py` | `MAX_HISTORY`    | `50`    | Messages replayed on join        |
+| `core/config.py` | `PING_INTERVAL`  | `300`   | Heartbeat interval (seconds)     |
+| `core/config.py` | `DATA_DIR`       | `backend/` | DB directory; set via `DATA_DIR` env var |
+| `script.js`     | `reconnectDelay`  | `1000`  | Initial reconnect delay (ms)     |
+| `script.js`     | `maxReconnectDelay` | `30000` | Max reconnect delay (ms)       |
+
+`DATA_DIR` is the only setting that differs between local dev and Docker. Docker Compose sets it to `/app/data`, which is backed by the `chat_data` named volume.
+
+---
 
 ## Tech Stack
 
-- **Backend:** Python 3.10+, FastAPI, uvicorn, aiosqlite, SQLAlchemy Core, Alembic
+- **Backend:** Python 3.12, FastAPI, uvicorn, aiosqlite, SQLAlchemy Core, Alembic
 - **Frontend:** HTML5, CSS3, Vanilla JavaScript
+- **Infrastructure:** Docker, Docker Compose
+
+---
 
 ## Testing Checklist
 
@@ -161,6 +200,9 @@ Index: `idx_room (room_id, id)` — supports history queries filtered by room an
 - [ ] **Persistence:** Send messages → restart server → history still loads
 - [ ] **Rooms:** Open `?room=a` and `?room=b` → messages stay isolated
 - [ ] **XSS:** Send `<script>alert('xss')</script>` → renders as plain text
+- [ ] **Docker:** `docker compose up --build` → app loads → send messages → `docker compose down` → `docker compose up` → history still loads
+
+---
 
 ## Troubleshooting
 
@@ -168,9 +210,13 @@ Index: `idx_room (room_id, id)` — supports history queries filtered by room an
 
 **Migration error on startup** — Run `alembic upgrade head` manually from `backend/` to see the full error.
 
-**`chat.db` permission error** — Ensure the process has write access to the `backend/` directory.
+**`chat.db` permission error (local)** — Ensure the process has write access to `backend/`.
 
-**"offline" status persists** — Restart the server (`Ctrl+C`, `uvicorn app.main:app --reload`) and hard-refresh the browser.
+**Permission error in Docker** — The container runs as root by default; check that the volume mount is writable.
+
+**"offline" status persists** — Restart the server and hard-refresh the browser.
+
+---
 
 ## License
 
