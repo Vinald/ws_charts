@@ -20,7 +20,7 @@ ws_charts/
 
 ## Features Implemented
 
-### ✅ UX / Frontend
+### UX / Frontend
 
 - **Auto-reconnect with exponential backoff** — If the WebSocket drops, the client automatically attempts to reconnect with exponential backoff (1s → 2s → 4s → ... → max 30s). Connection status displays "reconnecting...".
 
@@ -39,19 +39,19 @@ ws_charts/
   - Validation feedback with shake animation if name is too short
   - Enter key support for quick joining
 
-### ✅ Reliability / Backend
+### Reliability / Backend
 
 - **Graceful error handling in broadcast** — Each send_message call is wrapped individually in try-except. If one client's connection is broken mid-broadcast, the error is logged and remaining clients still receive messages. Broken connections are automatically cleaned up.
 
 - **Heartbeat / ping-pong** — The server sends a ping every 30 seconds. Clients respond with pong. This detects stale connections (e.g., tab crash) and prevents the manager from holding dead sockets.
 
-### ✅ Architecture
+### Architecture
 
 - **Message history** — The last 50 messages are stored in memory (per room). When a new client joins, they receive all historical messages marked as "history", with a divider showing "Earlier messages".
 
 - **Rooms/channels** — Connections are namespaced by room ID. Multiple separate chat rooms can coexist. Pass `?room=room_id` in the URL or use the `room` query parameter on the WebSocket connection.
 
-### ✅ Security
+### Security
 
 - **Input sanitization** — Message text is escaped using Python's `html.escape()` on the backend and rendered via `textContent` (not `innerHTML`) on the frontend. This prevents XSS injection attacks from scripts, HTML tags, or other malicious input.
 
@@ -89,6 +89,7 @@ To join a different room, use: `http://localhost:8000?room=my-room`
 #### Client → Server
 
 **message**
+
 ```json
 {
   "type": "message",
@@ -99,6 +100,7 @@ To join a different room, use: `http://localhost:8000?room=my-room`
 ```
 
 **typing**
+
 ```json
 {
   "type": "typing",
@@ -107,6 +109,7 @@ To join a different room, use: `http://localhost:8000?room=my-room`
 ```
 
 **pong**
+
 ```json
 {
   "type": "pong"
@@ -116,6 +119,7 @@ To join a different room, use: `http://localhost:8000?room=my-room`
 #### Server → Client
 
 **message**
+
 ```json
 {
   "type": "message",
@@ -128,6 +132,7 @@ To join a different room, use: `http://localhost:8000?room=my-room`
 ```
 
 **ack** (message delivery confirmation)
+
 ```json
 {
   "type": "ack",
@@ -136,6 +141,7 @@ To join a different room, use: `http://localhost:8000?room=my-room`
 ```
 
 **typing**
+
 ```json
 {
   "type": "typing",
@@ -144,6 +150,7 @@ To join a different room, use: `http://localhost:8000?room=my-room`
 ```
 
 **ping** (heartbeat)
+
 ```json
 {
   "type": "ping"
@@ -183,52 +190,61 @@ PING_INTERVAL = 30    # Heartbeat interval in seconds
 ## Implementation Details
 
 ### Auto-reconnect with Exponential Backoff
+
 - **File:** `frontend/script.js` - `scheduleReconnect()` method
 - Initial delay: 1000ms, doubles on each attempt, caps at 30000ms (30s)
 - Displays "reconnecting..." status in yellow
 - Resets to 1000ms on successful connection
 
 ### Message Delivery Ticks
+
 - **File:** `frontend/script.js` - `addMessage()` and `handleMessage()` methods
 - Single tick (✓) on send, double tick (✓✓) in blue on server ACK
 - Tracked via `pendingMessages` Map with message UUID
 
 ### Typing Indicator
+
 - **File:** `frontend/script.js` - `setupEventListeners()` and `showTypingIndicator()` methods
 - Sends `{type: "typing"}` on input (throttled to 1s intervals)
 - Displays "[username] is typing..." in green, italic
 - Auto-clears after 2s of inactivity
 
 ### Sender Identity
+
 - **File:** `frontend/script.js` - `addMessage()` method
 - All received messages display sender's username above bubble
 - Username styled in green (#25d366) with smaller font
 
 ### Graceful Error Handling
+
 - **File:** `backend/app/manager.py` - `broadcast()` method
 - Each client send wrapped individually in try-except
 - Broken connections detected and cleaned up
 - Other clients unaffected if one connection fails
 
 ### Heartbeat / Ping-Pong
+
 - **File:** `backend/app/manager.py` - `heartbeat()` method
 - Server sends ping every 30 seconds (configurable via `PING_INTERVAL`)
 - Clients respond with pong
 - Detects stale connections (tab crash, network drop)
 
 ### Message History
+
 - **File:** `backend/app/manager.py` - `self.history` dict
 - Stores last 50 messages per room (configurable via `MAX_HISTORY`)
 - Sent to new clients on connect with `"history": True` flag
 - Visual divider shows "Earlier messages" separating old from new
 
 ### Rooms/Channels
+
 - **File:** `backend/app/app.py` and `backend/app/manager.py`
 - URL parameter: `?room=room_id` (defaults to "default")
 - Each room has isolated connections and history
 - Multiple rooms can coexist with zero interference
 
 ### Input Sanitization (XSS Prevention)
+
 - **Backend:** `backend/app/manager.py` - `broadcast()` method uses `html.escape()`
 - **Frontend:** `frontend/script.js` - `addMessage()` method uses `textContent` instead of `innerHTML`
 - Escapes HTML special characters: `<` → `&lt;`, `>` → `&gt;`, `&` → `&amp;`, etc.
